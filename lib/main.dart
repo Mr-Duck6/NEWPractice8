@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'screens/greenhouse_screen.dart';
+
 void main() {
   runApp(const GreenhouseApp());
 }
@@ -14,18 +16,6 @@ class GreenhouseApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.green),
       home: const GreenhouseScreen(),
       debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class GreenhouseScreen extends StatelessWidget {
-  const GreenhouseScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Моніторинг теплиці')),
-      body: const Center(child: Text('Дані теплиці')),
     );
   }
 }

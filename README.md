@@ -1,17 +1,31 @@
-# practice8
+# Practice: Варіант 1 - Моніторинг розумної теплиці 
 
-A new Flutter project.
+---
 
-## Getting Started
+## Опис застосунку та функціонал
 
-This project is a starting point for a Flutter application.
+Застосунок реалізує панель моніторингу сільськогосподарського середовища із підтримкою наступних можливостей:
+1. Паралельне завантаження: Під час відкриття екрана з єдиним індикатором завантаження одночасно отримуються список датчиків, порогові значення та добовий підсумок із таймаутом у 3 секунди.
+2. Оновлення в реальному часі: Дані датчиків (температура, вологість, освітленість) періодично оновлюються за допомогою власних StreamController та таймерів.
+3. Контроль порогових значень та SnackBar: Якщо показник датчика виходить за допустиму норму, картка підсвічується, а користувач отримує сповіщення через SnackBar.
+4. Kнопка Пауза / Продовжити: Зупиняє та відновлює надходження подій на рівні підписок , а не просто ховає їх в UI.
+5. Ізоляція помилок: Збій конкретного датчика передається через метод addError, змінює колір його картки на червоний, але не закриває потік і не зупиняє роботу інших датчиків.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 2. Де в коді реалізовано ключові механізми
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* **Паралельні запити (`Future.wait` / таймаут)**:
+  - Реалізовано в методі `_loadData()` у файлі `lib/screens/greenhouse_screen.dart` за допомогою `Future.wait` або обгортки над запитом із викликом `.timeout(const Duration(seconds: 3))`.
+* **Потоки даних та ізоляція збоїв (`StreamController` / `addError`)**:
+  - У сервісі `lib/services/greenhouse_api.dart` кожен датчик генерує значення через таймер. У разі імітації збою мережі викликається `controller.addError(...)`, яка перехоплюється в обробнику `onError` без закриття самого контролера.
+* **Керування паузою та життєвим циклом (`dispose()`)**:
+  - Метод `_togglePause()` керує станом потоків через паузу підписок. Усі контролери та підписки обов'язково закриваються в методі `dispose()`, що виключає витоки пам'яті.
+
+---
+
+## 3. Інструкція запуску
+
+1. Встановіть залежності проєкту:
+   ```bash
+   flutter pub get

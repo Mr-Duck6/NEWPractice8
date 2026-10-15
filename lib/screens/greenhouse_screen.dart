@@ -34,14 +34,17 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
   void _loadData() {
     _initDataFuture = _api.fetchInitialData().timeout(
       const Duration(seconds: 3),
-      onTimeout: () =>
-          throw TimeoutException('Перевищено час очікування сервера'),
+      onTimeout: () {
+        throw TimeoutException('Перевищено час очікування сервера');
+      },
     );
   }
 
   void _initStreamsAndSubscriptions() {
     for (var sensor in _sensors) {
-      if (_controllers.containsKey(sensor.id)) continue;
+      if (_controllers.containsKey(sensor.id)) {
+        continue;
+      }
 
       final controller = StreamController<double>.broadcast();
       _controllers[sensor.id] = controller;
@@ -50,11 +53,15 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
 
       _subscriptions[sensor.id] = stream.listen(
         (newValue) {
-          if (!mounted || _isPaused) return;
+          if (!mounted || _isPaused) {
+            return;
+          }
           _updateSensorValue(sensor.id, newValue, false, null);
         },
         onError: (error) {
-          if (!mounted || _isPaused) return;
+          if (!mounted || _isPaused) {
+            return;
+          }
           _updateSensorValue(sensor.id, 0.0, true, error.toString());
         },
       );
@@ -79,19 +86,26 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
 
         if (!isError && _thresholds != null) {
           bool exceeded = false;
-          if (id == 'temp' && value > _thresholds!.maxTemperature)
+          if (id == 'temp' && value > _thresholds!.maxTemperature) {
             exceeded = true;
-          if (id == 'hum' && value < _thresholds!.minHumidity) exceeded = true;
-          if (id == 'light' && value < _thresholds!.minLight) exceeded = true;
+          }
+          if (id == 'hum' && value < _thresholds!.minHumidity) {
+            exceeded = true;
+          }
+          if (id == 'light' && value < _thresholds!.minLight) {
+            exceeded = true;
+          }
 
           if (exceeded) {
             final now = DateTime.now();
             if (oldSensor.lastAlertTime == null ||
                 now.difference(oldSensor.lastAlertTime!).inSeconds >= 10) {
-              _sensors[index] = _sensors[index].copyWith(lastAlertTime: now);
+              _sensors[index] = oldSensor.copyWith(lastAlertTime: now);
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
+                if (!mounted) {
+                  return;
+                }
                 ScaffoldMessenger.of(context).clearSnackBars();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -116,7 +130,6 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
     });
 
     if (_isPaused) {
-      // Зупиняємо підписки / закриваємо контролери
       for (var sub in _subscriptions.values) {
         sub.pause();
       }
@@ -181,7 +194,6 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
             _sensors = snapshot.data!.sensors;
             _thresholds = snapshot.data!.thresholds;
             _summary = snapshot.data!.summary;
-            // Ініціалізуємо стріми після отримання даних
             _initStreamsAndSubscriptions();
           }
 
@@ -194,7 +206,6 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Підсумок за добу
                 if (_summary != null)
                   Card(
                     color: Colors.green.shade50,
@@ -204,14 +215,12 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Добовий звіт: ${_summary!.reportDate}',
+                            'Звіт: ${_summary!.reportDate}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
+                          Text('Сер. темп: ${_summary!.avgTemperature}°C'),
                           Text(
-                            'Сер. температура: ${_summary!.avgTemperature}°C',
-                          ),
-                          Text(
-                            'Статус: ${_summary!.status}',
+                            _summary!.status,
                             style: const TextStyle(color: Colors.green),
                           ),
                         ],
@@ -220,7 +229,7 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
                   ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Показники датчиків у реальному часі:',
+                  'Показники датчиків:',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -233,14 +242,17 @@ class _GreenhouseScreenState extends State<GreenhouseScreen> {
                       bool isThresholdExceeded = false;
                       if (_thresholds != null) {
                         if (sensor.id == 'temp' &&
-                            sensor.value > _thresholds!.maxTemperature)
+                            sensor.value > _thresholds!.maxTemperature) {
                           isThresholdExceeded = true;
+                        }
                         if (sensor.id == 'hum' &&
-                            sensor.value < _thresholds!.minHumidity)
+                            sensor.value < _thresholds!.minHumidity) {
                           isThresholdExceeded = true;
+                        }
                         if (sensor.id == 'light' &&
-                            sensor.value < _thresholds!.minLight)
+                            sensor.value < _thresholds!.minLight) {
                           isThresholdExceeded = true;
+                        }
                       }
 
                       Color cardColor = Colors.white;
